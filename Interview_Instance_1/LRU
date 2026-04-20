@@ -1,0 +1,75 @@
+#include <unordered_map>
+#include <queue>
+#include <cstring>
+class LRUCache {
+private:
+        int capacity;
+        vector<pair<int, int>> store_idx;
+        
+        unordered_map<int,int> keys;
+        int lru_time_cnt[100005];
+        int cnt;
+        int time;
+        priority_queue<pair<int,int>, vector<pair<int,int>>, greater<pair<int,int>>> pq;
+
+public:
+    LRUCache(int capacity) {
+        this -> capacity = capacity;
+        this -> cnt = 0;
+        this -> time = 0;
+        memset(lru_time_cnt, 0, sizeof(lru_time_cnt));
+    }
+    
+    int get(int key) {
+        time++;
+        if(this->keys.count(key)){
+            
+            pq.push({time,key});
+            lru_time_cnt[key]++;
+            
+            return this->keys[key];
+        }
+
+        return -1;
+    }
+    
+    void put(int key, int value) {
+        time++;
+        if(keys.count(key)){
+            keys.erase(key);
+            keys[key] = value;
+            
+            pq.push({time, key});
+            lru_time_cnt[key]++;
+        } else {
+            if(this->capacity == this->cnt){
+                int erase_key = pq.top().second;
+                while(lru_time_cnt[pq.top().second]>1){
+                    lru_time_cnt[pq.top().second]--;
+                    pq.pop();
+                    erase_key = pq.top().second;
+                }
+                lru_time_cnt[pq.top().second]--;
+                pq.pop();
+                this->keys.erase(erase_key);
+                
+                this->keys[key] = value;
+                lru_time_cnt[key]++;
+                pq.push({time, key});
+            }
+            else{
+                this->cnt++;
+                pq.push({time,key});
+                keys[key] = value;
+                lru_time_cnt[key]++;
+            }
+        }
+    }
+};
+
+/**
+ * Your LRUCache object will be instantiated and called as such:
+ * LRUCache* obj = new LRUCache(capacity);
+ * int param_1 = obj->get(key);
+ * obj->put(key,value);
+ */
